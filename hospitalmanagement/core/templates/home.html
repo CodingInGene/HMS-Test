@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+
+<!-- Main Container -->
+{% if user.role == "patient" %}
+
+    <!-- Patient dashboard-->
+    <div class="max-w-6xl mx-auto mt-10 bg-white shadow-md rounded-lg p-6">
+
+        <!-- Appointments -->
+        <h2 class="text-2xl font-semibold mb-4 text-gray-700">My Appointments</h2>
+
+        <div class="overflow-x-auto mb-10">
+            <table class="w-full border border-gray-200">
+                <thead class="bg-gray-100 text-left text-gray-700">
+                    <tr>
+                        <th class="p-3 border">Doctor</th>
+                        <th class="p-3 border">Specialization</th>
+                        <th class="p-3 border">Time Slot</th>
+                        <th class="p-3 border">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody class="text-gray-600">
+                {% for appointment in appointments %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 border">
+                            {{ appointment.appointment_slot.doctor.user.first_name }}
+                            {{ appointment.appointment_slot.doctor.user.last_name }}
+                        </td>
+                        <td class="p-3 border">
+                            {{ appointment.appointment_slot.doctor.specialization.name }}
+                        </td>
+                        <td class="p-3 border">
+                            {{ appointment.appointment_slot.time_start|time:'H:i' }} - {{ appointment.appointment_slot.time_end|time:'H:i' }}
+                        </td>
+                        <td class="p-3 border">
+                            <form action="{% url 'core:del_appointment' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="appointment_id" value="{{ appointment.pk }}">
+                                <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 cursor-pointer">
+                                    Cancel
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center p-4 text-gray-500">No appointments booked</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="text-2xl font-semibold mb-6 text-gray-700">Doctors List</h2>
+
+        <div class="overflow-x-auto">
+            <table class="w-full border border-gray-200">
+                <thead class="bg-gray-100 text-left text-gray-700">
+                    <tr>
+                        <th class="p-3 border">Name</th>
+                        <th class="p-3 border">Specialization</th>
+                        <th class="p-3 border">Availability</th>
+                    </tr>
+                </thead>
+
+                <tbody class="text-gray-600">
+                {% for doctor in doctors %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 border">
+                            {{ doctor.user.first_name }} {{ doctor.user.last_name }}
+                        </td>
+
+                        <td class="p-3 border">
+                            {{ doctor.specialization.name }}
+                        </td>
+
+                        <td class="p-3 border">
+                            {% for slot in doctor.available_slots %}
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span>{{ slot.time_start|time:'H:i' }} - {{ slot.time_end|time:'H:i' }}</span>
+
+                                    <!-- Booking-->
+                                    <form action="{% url 'core:create_appointment' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="doctor_id" value="{{ doctor.pk }}">
+                                        <input type="hidden" name="slot_id" value="{{ slot.pk }}">
+                                        <button type="submit"
+                                            class="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700 cursor-pointer">
+                                            Book
+                                        </button>
+                                    </form>
+                                </div>
+                            {% empty %}
+                                <span class="text-gray-400">No slots available</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center p-4 text-gray-500">No doctors available</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% else %}
+
+    <!-- DOCTOR DASHBOARD -->
+
+    <div class="max-w-5xl mx-auto mt-4 bg-white p-6 rounded-lg shadow">
+
+        <h2 class="text-2xl font-semibold mb-6">{{user.first_name}}'s Dashboard</h2>
+
+        <!-- Specialization -->
+        <div class="mb-8">
+
+            <p class="text-lg mb-2"><strong>Specialization:</strong> {{ user.user_to_doctor.specialization.name }}</p>
+
+            <form action="{% url 'core:update_specialization' %}" method="post" class="w-max flex flex-col gap-4">
+                {% csrf_token %}
+
+                <select name="specialization">
+                    {% for i in specializations %}
+                        {% if user.user_to_doctor.specialization.name == i.name %}
+                            <option value="{{i.name}}" selected>{{i.name}}</option>
+                        {% else %}
+                            <option value="{{i.name}}">{{i.name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+
+                <button class="w-max px-4 py-2 rounded bg-green-600 text-white cursor-pointer">Change specialization</button>
+
+                <!-- Error-->
+                {% for message in messages %}
+                    <p class="text-red-500">{{ message }}</p>
+                {% endfor %}
+            </form>
+
+        </div>
+
+        <!-- Doctors appointments-->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold mb-4">Appointments</h3>
+
+            <table class="w-full border">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border">Patient</th>
+                        <th class="p-2 border">Time Slot</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for appointment in appointments %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2 border">
+                            {{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}
+                        </td>
+                        <td class="p-2 border">
+                            {{ appointment.appointment_slot.time_start|time:'H:i' }} - {{ appointment.appointment_slot.time_end|time:'H:i' }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center p-4 text-gray-500">No appointments yet</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Time Slots -->
+        <div class="flex flex-col gap-4">
+            <h3 class="text-lg font-semibold mb-4">Time Slots</h3>
+
+            <table class="w-full border">
+
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border">Slot Time</th>
+                        <th class="p-2 border">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for slot in timings %}
+                    <tr>
+                        <td class="p-2 border">
+                            <span class="slot-text">{{ slot.time_start|time:'H:i' }} - {{ slot.time_end|time:'H:i' }}</span>
+                            
+                            <!-- Time slot edit form-->
+                            <form action="{% url 'core:update_timeslot' %}" method="post" class="sloteditform hidden">
+                                {% csrf_token %}
+
+                                <input type="hidden" name="id" value="{{slot.pk}}">
+
+                                <input type="time" name="starttime" value="{{slot.time_start|time:'H:i'}}">
+
+                                <input type="time" name="endtime" value="{{slot.time_end|time:'H:i'}}">
+
+                                <button type="submit" class="hidden"></button>
+                            </form>
+                        </td>
+
+                        <td class="p-2 border">
+                            <button class="edit-slot w-max bg-blue-600 text-white px-4 py-2 mx-2 rounded cursor-pointer">Edit</button>
+
+                            <form action="{% url 'core:delete_timeslot' %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="slot_id" value="{{ slot.pk }}">
+                                <button type="submit" class="delete-slot w-max bg-red-600 text-white px-4 py-2 rounded cursor-pointer">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center p-4 text-gray-500">No time slots added</td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            <!-- Slot add-->
+            <form action="{% url 'core:create_timeslot' %}" method="post" id="slotcreateform" class="w-max hidden p-4">
+                {% csrf_token %}
+                <div class="flex w-max flex-row gap-4">
+                    <div class="w-max flex flex-col gap-2">
+                        <label class="w-max">Starting time</label>
+                        <input type="time" name="starttime" id="starttime">
+                    </div>
+                    <div class="w-max flex flex-col gap-2">
+                        <label class="w-max">Ending time</label>
+                        <input type="time" name="endtime" id="endtime">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-max h-max bg-green-600 text-white px-4 py-2 rounded">Create</button>
+            </form>
+
+            <div class="w-max">
+                <button id="startslotcreation" class="mt-4 bg-green-600 text-white px-4 py-2 rounded">Add Slot</button>
+
+                <button id="cancelslotcreation" class="mt-4 hidden bg-red-600 text-white px-4 py-2 rounded">Cancel</button>
+            </div>
+        </div>
+
+    </div>
+
+{% endif %}
+
+{% endblock %}

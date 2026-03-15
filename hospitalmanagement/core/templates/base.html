@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %} {% endblock %}</title>
+
+    {% load tailwind_tags %}
+    {% tailwind_css %}
+
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-600 text-white px-6 py-4 flex justify-between items-center">
+
+        <h1 class="text-xl w-max font-semibold">
+            Hospital Management
+        </h1>
+
+        <div class="w-max text-lg font-semibold flex flex-row items-center gap-5">
+            {% if request.user.is_authenticated %}
+                {{ request.user.first_name }} {{ request.user.last_name }}
+
+                <!-- Logout-->
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="text-black bg-white w-max px-4 py-2 m-0 rounded-full font-semibold">Logout</button>
+                </form>
+            {% endif %}
+        </div>
+
+    </nav>
+
+    {% block body %}
+
+    {% endblock %}
+
+    {% load static %}
+    <script src="{% static 'base.js' %}"></script>
+
+</body>
+</html>

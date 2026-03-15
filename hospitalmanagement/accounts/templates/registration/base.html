@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} {% endblock %}</title>
+    
+    {% load tailwind_tags %}
+    {% tailwind_css %}
+
+    <style>
+        /* Form Inputs */
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+            background-color: #fff;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #ffffff;
+            color: #374151; /* gray-700 */
+            outline: none;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* focus effect */
+        select:focus {
+            border-color: #2563eb; /* blue-600 */
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        /* dropdown arrow spacing */
+        select option {
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 to-teal-100 min-h-screen flex items-center justify-center">
+
+    {% block body %}
+
+    {% endblock %}
+
+</body>
+</html>
